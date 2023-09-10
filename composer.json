@@ -1,0 +1,27 @@
+{
+    "name": "hyperspec/hyperspec",
+    "description": "RSpec-inspired testing framework for PHP",
+    "type": "library",
+    "keywords": [
+        "php",
+        "rspec",
+        "testing",
+        "tdd",
+        "bdd"
+    ],
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Hyperspec\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Zoltan Ormandi",
+            "email": "zoltan.ormandi@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1"
+    }
+}
