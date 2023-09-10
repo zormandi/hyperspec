@@ -1,2 +1,3 @@
-# hyperspec
-HyperSpec test framework for PHP
+# HyperSpec
+
+HyperSpec; an RSpec-inspired testing framework for PHP
