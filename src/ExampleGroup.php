@@ -43,12 +43,12 @@ class ExampleGroup implements Verifiable
 
     public function runFinalizers(Example $context): void
     {
-        foreach ($this->finalizers as $finalizer) {
-            $finalizer->bindTo($context)();
-        }
-
         if (!empty($this->parent)) {
             $this->parent->runFinalizers($context);
+        }
+
+        foreach ($this->finalizers as $finalizer) {
+            $finalizer->bindTo($context)();
         }
     }
 
