@@ -18,12 +18,13 @@ class Example implements Verifiable
 
     public function verify(): void
     {
-        $this->parent->runInitializers();
         $this->fixtures = $this->parent->sharedFixtures();
-        $this->executeClosureWithinExampleContext($this->definition);
+        $this->parent->runInitializers($this);
+        $this->definition->bindTo($this)();
+        $this->parent->runFinalizers($this);
     }
 
-    public function __set(string $name, mixed $value): void
+    public function __set(string $name, $value): void
     {
         $this->fixtures[$name] = $value;
     }
@@ -35,14 +36,8 @@ class Example implements Verifiable
         }
 
         if ($this->fixtures[$name] instanceof Closure) {
-            $this->fixtures[$name] = $this->executeClosureWithinExampleContext($this->fixtures[$name]);
+            $this->fixtures[$name] = $this->fixtures[$name]->bindTo($this)();
         }
         return $this->fixtures[$name];
-    }
-
-    private function executeClosureWithinExampleContext(Closure $closure): mixed
-    {
-        $closureWithinContext = $closure->bindTo($this);
-        return $closureWithinContext();
     }
 }

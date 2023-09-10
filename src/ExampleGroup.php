@@ -25,44 +25,56 @@ class ExampleGroup implements Verifiable
         $this->initializers[] = $initializer;
     }
 
+    public function runInitializers(Example $context): void
+    {
+        if (!empty($this->parent)) {
+            $this->parent->runInitializers($context);
+        }
+
+        foreach ($this->initializers as $initializer) {
+            $initializer->bindTo($context)();
+        }
+    }
+
     public function addFinalizer(Closure $finalizer): void
     {
         $this->finalizers[] = $finalizer;
     }
 
-    public function runInitializers(): void
+    public function runFinalizers(Example $context): void
     {
-        if (!empty($this->parent)) {
-            $this->parent->runInitializers();
+        foreach ($this->finalizers as $finalizer) {
+            $finalizer->bindTo($context)();
         }
-        foreach ($this->initializers as $initializer) {
-            $initializer();
+
+        if (!empty($this->parent)) {
+            $this->parent->runFinalizers($context);
         }
     }
 
-    public function addExample(Example $example)
+    public function addExample(Example $example): void
     {
         $this->examples[] = $example;
     }
 
-    public function addExampleGroup(self $exampleGroup)
+    public function addExampleGroup(self $exampleGroup): void
     {
         $this->examples[] = $exampleGroup;
     }
 
-    public function addSharedFixture(string $name, mixed $value)
+    public function addSharedFixture(string $name, $value): void
     {
         $this->sharedFixtures[$name] = $value;
     }
 
     public function sharedFixtures(): array
     {
-        $result = [];
+        $parentFixtures = [];
         if (!empty($this->parent)) {
-            $result = $this->parent->sharedFixtures();
+            $parentFixtures = $this->parent->sharedFixtures();
         }
 
-        return array_merge($result, $this->sharedFixtures);
+        return array_merge($parentFixtures, $this->sharedFixtures);
     }
 
     public function verify(): void

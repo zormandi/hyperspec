@@ -6,11 +6,13 @@ declare(strict_types=1);
 require_once 'src/Verifiable.php';
 require_once 'src/Example.php';
 require_once 'src/ExampleGroup.php';
-require_once 'src/HyperSpec.php';
+require_once 'src/Processor.php';
 require_once 'src/DSL/Functions.php';
 
-use HyperSpec\HyperSpec;
-use function HyperSpec\DSL\{beforeEach, describe, context, it, subject, let};
+use HyperSpec\Processor;
+use function HyperSpec\DSL\{afterEach, beforeEach, describe, context, it, subject, let};
+
+Processor::initialize();
 
 /***************
  * Expectation *
@@ -19,7 +21,7 @@ class Expectation
 {
     private bool $isNegated = false;
 
-    public function __construct(private mixed $object)
+    public function __construct(private $actual)
     {
     }
 
@@ -30,17 +32,17 @@ class Expectation
         return $this;
     }
 
-    public function toEqual(mixed $expectedValue): void
+    public function toEqual($expected): void
     {
-        if ($this->object != $expectedValue) {
-            throw new RuntimeException("Expected $this->object to equal $expectedValue");
+        if ($this->actual != $expected) {
+            throw new RuntimeException("Expected $this->actual to equal $expected");
         }
     }
 }
 
-function expect(mixed $object): Expectation
+function expect($actual): Expectation
 {
-    return new Expectation($object);
+    return new Expectation($actual);
 }
 
 /************
@@ -90,11 +92,19 @@ describe('Test', function () {
         echo 'Hello ';
     });
 
+    afterEach(function () {
+        echo 'Goodbye ';
+    });
+
     describe('->method', function () {
         let('foo', 1);
 
         beforeEach(function () {
             echo "world!\n";
+        });
+
+        afterEach(function () {
+            echo "cruel world!\n";
         });
 
         it('can access shared fixtures via $this', function () {
@@ -137,6 +147,4 @@ describe('Test', function () {
     });
 });
 
-foreach (HyperSpec::$exampleGroups as $exampleGroup) {
-    $exampleGroup->verify();
-}
+Processor::executeTests();
