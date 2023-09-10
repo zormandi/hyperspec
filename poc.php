@@ -1,167 +1,16 @@
 <?php
 declare(strict_types=1);
 
-/****************************
- * Implementation - classes *
- ****************************/
-interface Verifiable
-{
-    public function verify(): void;
-}
+//require_once 'vendor/autoload.php';
 
-class ExampleGroup implements Verifiable
-{
-    /** @var (Example|ExampleGroup)[] */
-    private array $examples = [];
-    /** @var Closure[] */
-    private array $initializers = [];
-    private array $sharedFixtures = [];
+require_once 'src/Verifiable.php';
+require_once 'src/Example.php';
+require_once 'src/ExampleGroup.php';
+require_once 'src/HyperSpec.php';
+require_once 'src/DSL/Functions.php';
 
-    public function __construct(private string $description, private ?self $parent = null)
-    {
-    }
-
-    public function addInitializer(Closure $initializer): void
-    {
-        $this->initializers[] = $initializer;
-    }
-
-    public function runInitializers(): void
-    {
-        if (!empty($this->parent)) {
-            $this->parent->runInitializers();
-        }
-        foreach ($this->initializers as $initializer) {
-            $initializer();
-        }
-    }
-
-    public function addExample(Example $example)
-    {
-        $this->examples[] = $example;
-    }
-
-    public function addExampleGroup(self $exampleGroup)
-    {
-        $this->examples[] = $exampleGroup;
-    }
-
-    public function addSharedFixture(string $name, mixed $value)
-    {
-        $this->sharedFixtures[$name] = $value;
-    }
-
-    public function sharedFixtures(): array
-    {
-        $result = [];
-        if (!empty($this->parent)) {
-            $result = $this->parent->sharedFixtures();
-        }
-
-        return array_merge($result, $this->sharedFixtures);
-    }
-
-    public function verify(): void
-    {
-        foreach ($this->examples as $example) {
-            $example->verify();
-        }
-    }
-}
-
-class Example implements Verifiable
-{
-    private array $fixtures = [];
-
-    public function __construct(private string $description, private Closure $definition, private ExampleGroup $parent)
-    {
-    }
-
-    public function verify(): void
-    {
-        $this->parent->runInitializers();
-        $this->fixtures = $this->parent->sharedFixtures();
-        $testCase = $this->definition->bindTo($this);
-        $testCase();
-    }
-
-    public function __set(string $name, mixed $value): void
-    {
-        $this->fixtures[$name] = $value;
-    }
-
-    public function __get(string $name): mixed
-    {
-        if (!array_key_exists($name, $this->fixtures)) {
-            throw new RuntimeException("Referencing unknown shared fixture: '$name'");
-        }
-
-        if ($this->fixtures[$name] instanceof Closure) {
-            $fixture = $this->fixtures[$name]->bindTo($this);
-            $this->fixtures[$name] = $fixture();
-        }
-        return $this->fixtures[$name];
-    }
-}
-
-/************************
- * Implementation - DSL *
- ************************/
-
-/** @var ExampleGroup[] $topLevelExampleGroups */
-$topLevelExampleGroups = [];
-/** @var ?ExampleGroup $currentExampleGroup */
-$currentExampleGroup = null;
-
-function xdescribe(string $description, Closure $definition): void
-{
-}
-
-function describe(string $description, Closure $definition): void
-{
-    global $topLevelExampleGroups, $currentExampleGroup;
-
-    $exampleGroup = new ExampleGroup($description, $currentExampleGroup);
-    if (empty($currentExampleGroup)) {
-        $topLevelExampleGroups[] = $exampleGroup;
-    } else {
-        $currentExampleGroup->addExampleGroup($exampleGroup);
-    }
-    $previousExampleGroup = $currentExampleGroup;
-    $currentExampleGroup = $exampleGroup;
-    $definition();
-    $currentExampleGroup = $previousExampleGroup;
-}
-
-//function xcontext(string $description, Closure $definition): void {}
-function context(string $description, Closure $definition): void
-{
-    describe($description, $definition);
-}
-
-function beforeEach(Closure $initializer): void
-{
-    global $currentExampleGroup;
-    $currentExampleGroup->addInitializer($initializer);
-}
-
-//function xit(string $description, Closure $definition): void {}
-function it(string $description, Closure $definition): void
-{
-    global $currentExampleGroup;
-    $currentExampleGroup->addExample(new Example($description, $definition, $currentExampleGroup));
-}
-
-function let(string $name, mixed $value): void
-{
-    global $currentExampleGroup;
-    $currentExampleGroup->addSharedFixture($name, $value);
-}
-
-function subject(mixed $value): void
-{
-    let('subject', $value);
-}
+use HyperSpec\HyperSpec;
+use function HyperSpec\DSL\{beforeEach, describe, context, it, subject, let};
 
 /***************
  * Expectation *
@@ -197,7 +46,6 @@ function expect(mixed $object): Expectation
 /************
  * Examples *
  ************/
-
 class Calculator
 {
     public static function add(int $a, $b)
@@ -257,7 +105,11 @@ describe('Test', function () {
             let('foo', 2);
 
             beforeEach(function () {
-                echo "Just this once!\n";
+                echo "Just this twice!\n";
+            });
+
+            it('uses the changed value', function () {
+                expect($this->foo)->toEqual(2);
             });
 
             it('uses the changed value', function () {
@@ -285,6 +137,6 @@ describe('Test', function () {
     });
 });
 
-foreach ($topLevelExampleGroups as $exampleGroup) {
+foreach (HyperSpec::$exampleGroups as $exampleGroup) {
     $exampleGroup->verify();
 }
