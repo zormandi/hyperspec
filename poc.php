@@ -1,12 +1,8 @@
 <?php
 declare(strict_types=1);
 
-//require_once 'vendor/autoload.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/Verifiable.php';
-require_once 'src/Example.php';
-require_once 'src/ExampleGroup.php';
-require_once 'src/Processor.php';
 require_once 'src/DSL/Functions.php';
 
 use HyperSpec\Processor;
