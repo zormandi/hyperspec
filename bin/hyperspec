@@ -1,0 +1,9 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+use HyperSpec\Runner;
+
+require $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
+
+(new Runner($argv[1]))->verifySpecs();

@@ -38,7 +38,8 @@ class Processor
 
     public static function addExample(string $description, Closure $definition): void
     {
-        self::$currentExampleGroup->addExample(new Example($description, $definition, self::$currentExampleGroup));
+        $example = new Example($description, $definition, self::$currentExampleGroup);
+        self::$currentExampleGroup->addExample($example);
     }
 
     public static function addSharedFixture(string $name, $value): void
@@ -46,8 +47,8 @@ class Processor
         self::$currentExampleGroup->addSharedFixture($name, $value);
     }
 
-    public static function executeTests(): void
+    public static function rootExampleGroup(): ExampleGroup
     {
-        self::$rootExampleGroup->verify();
+        return self::$rootExampleGroup;
     }
 }

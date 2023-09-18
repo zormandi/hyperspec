@@ -6,6 +6,7 @@ require_once 'vendor/autoload.php';
 require_once 'src/DSL/Functions.php';
 
 use HyperSpec\Processor;
+use HyperSpec\Runner;
 use function HyperSpec\DSL\{afterEach, beforeEach, describe, context, it, subject, let};
 
 Processor::initialize();
@@ -57,7 +58,7 @@ describe(Calculator::class, function () {
         $testCases = [[1, 2, 3], [5, 5, 10], [10, 1, 11]];
 
         foreach ($testCases as list($number, $otherNumber, $expectedSum)) {
-            it('returns the sum of the two numbers', function () use ($number, $otherNumber, $expectedSum) {
+            it("returns the sum of the two numbers ($number, $otherNumber)", function () use ($number, $otherNumber, $expectedSum) {
                 $result = Calculator::add($number, $otherNumber);
 
                 expect($result)->toEqual($expectedSum);
@@ -143,4 +144,4 @@ describe('Test', function () {
     });
 });
 
-Processor::executeTests();
+(new Runner(''))->verifyExampleGroup(Processor::rootExampleGroup(), -1);

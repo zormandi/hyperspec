@@ -13,7 +13,8 @@
     "autoload": {
         "psr-4": {
             "HyperSpec\\": "src/"
-        }
+        },
+        "files": ["src/DSL/Functions.php"]
     },
     "authors": [
         {
@@ -22,6 +23,12 @@
         }
     ],
     "require": {
-        "php": ">=8.1"
-    }
+        "php": ">=8.1",
+        "composer-runtime-api": "^2.2.2"
+    },
+    "require-dev": {
+        "behat/behat": "^3.13",
+        "phpunit/phpunit": "^10.3"
+    },
+    "bin": ["bin/hyperspec"]
 }

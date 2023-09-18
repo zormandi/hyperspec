@@ -5,19 +5,50 @@ namespace HyperSpec;
 
 use Closure;
 
-class ExampleGroup implements Verifiable
+class ExampleGroup
 {
-    /** @var (Example|ExampleGroup)[] */
+    /** @var Example[] */
     private array $examples = [];
+    /** @var ExampleGroup[] */
+    private array $exampleGroups = [];
+    /** @var (ExampleGroup|Example)[] */
+    private array $examplesAndGroups = [];
     /** @var Closure[] */
     private array $initializers = [];
     /** @var Closure[] */
     private array $finalizers = [];
     private array $sharedFixtures = [];
 
-    public function __construct(private string $description,
+    public function __construct(public readonly string $description,
                                 private readonly ?self $parent = null)
     {
+    }
+
+    public function addExample(Example $example): void
+    {
+        $this->examples[] = $example;
+        $this->examplesAndGroups[] = $example;
+    }
+
+    public function examples(): array
+    {
+        return $this->examples;
+    }
+
+    public function addExampleGroup(ExampleGroup $exampleGroup): void
+    {
+        $this->exampleGroups[] = $exampleGroup;
+        $this->examplesAndGroups[] = $exampleGroup;
+    }
+
+    public function exampleGroups(): array
+    {
+        return $this->exampleGroups;
+    }
+
+    public function examplesAndGroups(): array
+    {
+        return $this->examplesAndGroups;
     }
 
     public function addInitializer(Closure $initializer): void
@@ -52,16 +83,6 @@ class ExampleGroup implements Verifiable
         }
     }
 
-    public function addExample(Example $example): void
-    {
-        $this->examples[] = $example;
-    }
-
-    public function addExampleGroup(self $exampleGroup): void
-    {
-        $this->examples[] = $exampleGroup;
-    }
-
     public function addSharedFixture(string $name, $value): void
     {
         $this->sharedFixtures[$name] = $value;
@@ -75,12 +96,5 @@ class ExampleGroup implements Verifiable
         }
 
         return array_merge($parentFixtures, $this->sharedFixtures);
-    }
-
-    public function verify(): void
-    {
-        foreach ($this->examples as $example) {
-            $example->verify();
-        }
     }
 }

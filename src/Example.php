@@ -6,11 +6,11 @@ namespace HyperSpec;
 use Closure;
 use RuntimeException;
 
-class Example implements Verifiable
+class Example
 {
     private array $fixtures = [];
 
-    public function __construct(private string $description,
+    public function __construct(public readonly string $description,
                                 private readonly Closure $definition,
                                 private readonly ExampleGroup $parent)
     {
